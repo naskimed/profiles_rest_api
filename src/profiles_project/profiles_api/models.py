@@ -7,6 +7,10 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 
 from django.contrib.auth.models import BaseUserManager
+
+
+from django.contrib.auth.models import AbstractUser
+
 # Create your models here.
 
 class UserProfileManager(BaseUserManager):
@@ -66,3 +70,24 @@ class UserProfiles(AbstractBaseUser, PermissionsMixin):
         """"Django uses this when it needs to convert the object to a string"""
         return self.email  
     
+class Superuser(AbstractUser):
+    pass
+    
+class Group(models.Model):
+    name = models.CharField(max_length=50)
+    description = models.TextField()
+    superuser = models.ForeignKey(Superuser, on_delete=models.CASCADE)
+    users = models.ManyToManyField(UserProfiles, through='UserGroup')
+
+class UserGroup(models.Model):
+    user = models.ForeignKey(UserProfiles, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+
+class Subject(models.Model):
+    name = models.CharField(max_length=50)
+    description = models.TextField()
+    groups = models.ManyToManyField(Group, through='GroupSubject')
+
+class GroupSubject(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
