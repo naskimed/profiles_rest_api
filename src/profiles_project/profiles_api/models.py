@@ -70,24 +70,40 @@ class UserProfiles(AbstractBaseUser, PermissionsMixin):
         """"Django uses this when it needs to convert the object to a string"""
         return self.email  
     
-class Superuser(AbstractUser):
-    pass
+
+class Subject(models.Model):    
+    """The Subject class"""
+
+    Subname = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    students = models.ManyToManyField(UserProfiles, related_name='subjects')
+
+    def __str__(self):
+        return self.Subname
+
+    def get_student_count(self):
+        return self.students.count()
     
+
 class Group(models.Model):
-    name = models.CharField(max_length=50)
-    description = models.TextField()
-    superuser = models.ForeignKey(Superuser, on_delete=models.CASCADE)
-    users = models.ManyToManyField(UserProfiles, through='UserGroup')
+    """The group class which put the students of each class togother"""
 
-class UserGroup(models.Model):
-    user = models.ForeignKey(UserProfiles, on_delete=models.CASCADE)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
 
-class Subject(models.Model):
-    name = models.CharField(max_length=50)
-    description = models.TextField()
-    groups = models.ManyToManyField(Group, through='GroupSubject')
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    members = models.ManyToManyField(UserProfiles, related_name='group')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='group')
 
-class GroupSubject(models.Model):
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.name
+
+    def get_member_count(self):
+        return self.members.count()
+
+    def add_member(self, user_profile):
+        self.members.add(user_profile)
+
+    def remove_member(self, user_profile):
+        self.members.remove(user_profile)
+
+
